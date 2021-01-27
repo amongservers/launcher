@@ -75,7 +75,7 @@ namespace AmongServers.Launcher.Utilities
 
                 foreach(var server in _servers) {
                     writer.Write(Name);
-                    writer.Write(server.Endpoint.Address.ToString());
+                    writer.Write(server.Endpoint.Address.GetAddressBytes());
                     writer.Write((ushort)server.Endpoint.Port);
                     writer.Write(0);
                 }
