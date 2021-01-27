@@ -77,7 +77,7 @@ namespace AmongServers.Launcher
         public async Task RefreshServersAsync(CancellationToken cancellationToken = default)
         {
             // load the servers from the API
-            ServerEntity[] servers;
+            ServerEntity[] servers = Array.Empty<ServerEntity>();
 
             try {
                 servers = await _client.ListServersAsync(cancellationToken);
@@ -86,7 +86,7 @@ namespace AmongServers.Launcher
                 return;
             }
 
-            servers = new[] {
+            servers = servers.Concat(new[] {
                 new ServerEntity() {
                     Name = "My Among Server",
                     IPAddress = "144.56.23.9",
@@ -97,7 +97,7 @@ namespace AmongServers.Launcher
                     IPAddress = "2.31.87.122",
                     Port = 32323
                 }
-            };
+            }).ToArray();
 
             listServers.ItemsSource = servers.OrderBy(s=> s.Name).Select(s => new {
                 Name = s.Name,
@@ -167,7 +167,6 @@ namespace AmongServers.Launcher
             if (string.IsNullOrEmpty(txtDirectPlay.Text) || isValidIp) {
 
             } else {
-                txtDirectPlay.BorderBrush = Brushes.Red;
             }
 
             // enable the play button
