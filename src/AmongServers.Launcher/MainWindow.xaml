@@ -117,11 +117,16 @@
                                     <GridViewColumn Width="32" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <iconPacks:PackIconMaterial Width="16"
-                                                   Height="16"
-                                                   HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center"
-                                                   Kind="HeartOutline" />
+                                                <Button Background="{DynamicResource MahApps.Brushes.ThemeBackground}" Name="btnFavourite" ToolTip="Favorite" Click="btnFavourite_Click" HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center">
+                                                    <Button.Template>
+                                                        <ControlTemplate>
+                                                            <iconPacks:PackIconMaterial Width="16"
+                                                               Height="16"
+                                                               Kind="{Binding FavouriteIcon}" />
+                                                        </ControlTemplate>
+                                                    </Button.Template>
+                                                </Button>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
@@ -130,13 +135,46 @@
                                             <DataTemplate>
                                                 <StackPanel>
                                                     <TextBlock Text="{Binding Name}" FontSize="16"></TextBlock>
-                                                    <TextBlock Text="{Binding IPAddressPort}"></TextBlock>
+                                                    <TextBlock Text="{Binding Endpoint}"></TextBlock>
                                                 </StackPanel>
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
-                                    <GridViewColumn Width="64" Header="Players" DisplayMemberBinding="{Binding CountPlayers}"/>
-                                    <GridViewColumn Width="64" Header="Lobbies" DisplayMemberBinding="{Binding CountLobbies}"/>
+                                    <GridViewColumn Width="96" Header="Players">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iconPacks:PackIconMaterial Width="16"
+                                                   Height="16"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Kind="Account" />
+                                                    <TextBlock Margin="4 0 0 0" Text="{Binding CountPlayers}"></TextBlock>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Width="96" Header="Games">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <iconPacks:PackIconMaterial Width="16"
+                                                   Height="16"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Kind="Earth" />
+                                                    <TextBlock Margin="4 0 0 0" Text="{Binding CountPublicLobbies}"></TextBlock>
+                                                    <iconPacks:PackIconMaterial Width="16"
+                                                   Height="16"
+                                                   Margin="4 0 0 0"
+                                                   HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center"
+                                                   Kind="LockRemove" />
+                                                    <TextBlock Margin="4 0 0 0" Text="{Binding CountPrivateLobbies}"></TextBlock>
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
                                     <GridViewColumn Width="96" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>

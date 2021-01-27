@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -14,6 +16,8 @@ namespace AmongServers.Launcher
     /// </summary>
     public partial class App : Application
     {
+        public static string DataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AmongServers");
+
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             // parse a custom protocol
@@ -41,6 +45,15 @@ namespace AmongServers.Launcher
                         Environment.Exit(0);
                     }
                 }
+            }
+
+            // create data folder if possible
+            try {
+                if (!Directory.Exists(DataPath)) {
+                    Directory.CreateDirectory(DataPath);
+                }
+            } catch(Exception ex) {
+                Debug.Fail($"An error occured creating data path folder{Environment.NewLine}{Environment.NewLine}{ex.ToString()}");
             }
         }
     }

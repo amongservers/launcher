@@ -1,8 +1,13 @@
 ﻿using AmongServers.Launcher.Coordinator.Entities;
+using AmongServers.Launcher.Utilities;
 using MahApps.Metro.Controls;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Cache;
@@ -28,16 +33,30 @@ namespace AmongServers.Launcher
     public partial class MainWindow : MetroWindow
     {
         private ApiClient _client;
+        private List<FavouriteServer> _favouriteServers = new List<FavouriteServer>();
 
-        class ServerItem
+        class ServerItem : INotifyPropertyChanged
         {
-            public string Name { get; set; }
-            public string IPAddressPort { get; set; }
-            public bool IsSaved { get; set; }
-            public int CountPlayers { get; set; }
-            public int CountLobbies { get; set; }
+            private bool _isSaved;
 
-            public IPEndPoint Endpoint { get; set; }
+            public bool IsSaved {
+                get {
+                    return _isSaved;
+                } set {
+                    _isSaved = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(FavouriteIcon)));
+                }
+            }
+
+            public string Name { get; set; }
+            public string Endpoint { get; set; }
+            public bool IsAvailable { get; set; }
+            public string CountPlayers { get; set; }
+            public string CountPublicLobbies { get; set; }
+            public string CountPrivateLobbies { get; set; }
+            public string FavouriteIcon => IsSaved ? "Heart" : "HeartOutline";
+
+            public event PropertyChangedEventHandler PropertyChanged;
         }
 
         public MainWindow()
@@ -50,10 +69,31 @@ namespace AmongServers.Launcher
         }
 
         /// <summary>
+        /// Loads the favourites.
+        /// </summary>
+        /// <returns></returns>
+        private async Task LoadFavouritesAsync()
+        {
+            if (File.Exists(System.IO.Path.Combine(App.DataPath, "Favourites.json"))) {
+                string favouritesStr = await File.ReadAllTextAsync(System.IO.Path.Combine(App.DataPath, "Favourites.json"));
+                _favouriteServers = new List<FavouriteServer>(JsonConvert.DeserializeObject<FavouriteServer[]>(favouritesStr));
+            }
+        }
+
+        /// <summary>
+        /// Saves the favourites.
+        /// </summary>
+        /// <returns></returns>
+        private Task SaveFavouritesAsync()
+        {
+            return File.WriteAllTextAsync(System.IO.Path.Combine(App.DataPath, "Favourites.json"), JsonConvert.SerializeObject(_favouriteServers));
+        }
+
+        /// <summary>
         /// Refreshes the banner image.
         /// </summary>
         /// <returns></returns>
-        public async Task RefreshBannerAsync(CancellationToken cancellationToken = default)
+        private async Task RefreshBannerAsync(CancellationToken cancellationToken = default)
         {
             BannerEntity[] banners = null;
             BannerEntity activeBanner = new BannerEntity() {
@@ -103,39 +143,116 @@ namespace AmongServers.Launcher
             servers = servers.Concat(new[] {
                 new ServerEntity() {
                     Name = "My Among Server",
-                    Endpoint = "144.56.23.9:32323",
+                    Endpoint = "144.56.23.9:32021",
                     LastSeenAt = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(5)),
                     Games = Array.Empty<GameEntity>()
                 },
-                 new ServerEntity() {
-                    Name = "Potato lobby, come join!",
-                    Endpoint = "141.2.134.1:5623",
+                new ServerEntity() {
+                    Name = "EU Central | The UK is an Impostor",
+                    Endpoint = "141.2.134.1:32021",
                     LastSeenAt = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(10)),
                     Games = new[] {
                         new GameEntity() {
                             State = "started",
                             CountPlayers = 10,
                             NumImposters = 2,
+                            HostPlayer = new PlayerEntity() {
+                                Name = "Baconator"
+                            },
+                            IsPublic = true,
+                            Map = "polus",
+                            MaxPlayers = 10,
+                            Players = new[] {
+                                new PlayerEntity() {
+                                    Name = "Cheesenator"
+                                },
+                                new PlayerEntity() {
+                                    Name = "Breadantor"
+                                },
+                                new PlayerEntity() {
+                                    Name = "Baconator"
+                                }
+                            }
+                        }
+                    }
+                },
+                new ServerEntity() {
+                    Name = "OnlyPrivate Servers",
+                    Endpoint = "8.34.179.44:32022",
+                    LastSeenAt = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(10)),
+                    Games = new[] {
+                        new GameEntity() {
+                            State = "starting",
+                            CountPlayers = 3,
+                            NumImposters = 2,
                             HostPlayer = null,
                             IsPublic = false,
                             Map = "polus",
-                            MaxPlayers = 10,
+                            MaxPlayers = 5,
+                            Players = Array.Empty<PlayerEntity>()
+                        },
+                         new GameEntity() {
+                            State = "started",
+                            CountPlayers = 4,
+                            NumImposters = 2,
+                            HostPlayer = null,
+                            IsPublic = false,
+                            Map = "polus",
+                            MaxPlayers = 5,
                             Players = Array.Empty<PlayerEntity>()
                         }
                     }
                 }
             }).ToArray();
 
-            // set the item source
-            listServers.ItemsSource = servers.Where(s => IPEndPoint.TryParse(s.Endpoint, out IPEndPoint _))
-            .OrderBy(s=> s.Name).Select(s => new ServerItem() {
+            // get the favourited servers
+            ServerItem[] favouriteItems = _favouriteServers.Select(f => {
+                ServerEntity s = servers.SingleOrDefault(s => s.Endpoint == f.Endpoint.ToString());
+
+                if (s == null) {
+                    return new ServerItem() {
+                        Name = f.Name,
+                        CountPlayers = "?",
+                        CountPrivateLobbies = "?",
+                        CountPublicLobbies = "?",
+                        Endpoint = f.Endpoint,
+                        IsSaved = true,
+                        IsAvailable = false
+                    };
+                } else {
+                    // update the name
+                    f.Name = s.Name;
+
+                    return new ServerItem() {
+                        Name = s.Name,
+                        CountPlayers = s.Games == null ? "!" : s.Games.Sum(g => g.CountPlayers).ToString(),
+                        CountPublicLobbies = s.Games == null ? "!" : s.Games.Count(g => g.IsPublic).ToString(),
+                        CountPrivateLobbies = s.Games == null ? "!" : s.Games.Count(g => !g.IsPublic).ToString(),
+                        Endpoint = f.Endpoint,
+                        IsSaved = true,
+                        IsAvailable = true
+                    };
+                }
+            }).OrderBy(s => s.Name).ToArray();
+
+            // save favourites incase we updated any "last-seen" names
+            await SaveFavouritesAsync();
+
+            // get the regular servers
+            ServerItem[] regularServers = servers.Where(s => IPEndPoint.TryParse(s.Endpoint, out IPEndPoint _))
+            .Where(s => !favouriteItems.Any(f => f.Endpoint == s.Endpoint))
+            .Select(s => new ServerItem() {
                 Name = s.Name,
-                IPAddressPort = $"{s.Endpoint ?? "N/A"}",
+                Endpoint = s.Endpoint.ToString(),
+                IsAvailable = true,
                 IsSaved = false,
-                CountPlayers = s.Games == null ? 0 : s.Games.Sum(g => g.CountPlayers),
-                CountLobbies = s.Games == null ? 0 : s.Games.Length,
-                Endpoint = IPEndPoint.Parse(s.Endpoint)
-            });
+                CountPlayers = s.Games == null ? "!" : s.Games.Sum(g => g.CountPlayers).ToString(),
+                CountPublicLobbies = s.Games == null ? "!" : s.Games.Count(g => g.IsPublic).ToString(),
+                CountPrivateLobbies = s.Games == null ? "!" : s.Games.Count(g => !g.IsPublic).ToString()
+            }).OrderBy(s => s.Name).ToArray();
+
+            // set the item source
+            listServers.ItemsSource = new ObservableCollection<ServerItem>(favouriteItems.Concat(regularServers));
 
             // setup filter
             CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listServers.ItemsSource);
@@ -144,10 +261,18 @@ namespace AmongServers.Launcher
 
         private async void MetroWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // block for first load
+            LoadFavouritesAsync().Wait();
+
+            // set the version text
             lblVersion.Text = $"Version {Constants.ApplicationVersion}";
+
+            // refresh the banner
             _ = RefreshBannerAsync();
+
+            // refresh the server list
             btnRefresh.IsEnabled = false;
-           await RefreshServersAsync();
+            await RefreshServersAsync();
             btnRefresh.IsEnabled = true;
         }
 
@@ -203,7 +328,7 @@ namespace AmongServers.Launcher
         private void txtDirectPlay_TextChanged(object sender, TextChangedEventArgs e)
         {
             // check if the endpoint is valid
-            bool isValidIp = IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint _);
+            bool isValidIp = IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint endpoint) && endpoint.Port != 0 && !endpoint.Address.Equals(IPAddress.Any);
 
             // if it's empty or valid we leave the default border brush
             if (string.IsNullOrEmpty(txtDirectPlay.Text) || isValidIp) {
@@ -225,7 +350,7 @@ namespace AmongServers.Launcher
                 button.IsEnabled = false;
 
                 try {
-                    await Bootstrapper.ReplaceRegionInfoAsync(serverItem.Name, serverItem.Endpoint);
+                    await Bootstrapper.ReplaceRegionInfoAsync(serverItem.Name, IPEndPoint.Parse(serverItem.Endpoint));
                     await Bootstrapper.LaunchGameAsync();
                 } catch (Exception ex) {
                     MessageBox.Show($"An error occured launching the game{Environment.NewLine}{Environment.NewLine}{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -247,6 +372,44 @@ namespace AmongServers.Launcher
         private void txtFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
             CollectionViewSource.GetDefaultView(listServers.ItemsSource).Refresh();
+        }
+
+        private async void btnFavourite_Click(object sender, RoutedEventArgs e)
+        {
+            // get the button instance
+            Button button = (Button)sender;
+
+            // get the data context
+            if (button.DataContext is ServerItem serverItem) {
+                button.IsEnabled = false;
+
+                if (serverItem.IsSaved) {
+                    // remove from favourites
+                    _favouriteServers.Remove(_favouriteServers.Single(f => f.Endpoint == serverItem.Endpoint));
+
+                    // if this server was not available anymore we need to remove it now it's not pinned
+                    if (!serverItem.IsAvailable) {
+                        ((ObservableCollection<ServerItem>)listServers.ItemsSource).Remove(serverItem);
+                    }
+
+                    // mark as not saved then save
+                    serverItem.IsSaved = false;
+                    await SaveFavouritesAsync();
+                } else {
+                    // add to favourites
+                    _favouriteServers.Add(new FavouriteServer() {
+                        AddedAt = DateTimeOffset.UtcNow,
+                        Endpoint = serverItem.Endpoint,
+                        Name = serverItem.Name
+                    });
+
+                    // mark as saved then save
+                    serverItem.IsSaved = true;
+                    await SaveFavouritesAsync();
+                }
+
+                button.IsEnabled = true;
+            }
         }
     }
 }
