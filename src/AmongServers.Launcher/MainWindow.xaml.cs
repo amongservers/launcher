@@ -140,6 +140,7 @@ namespace AmongServers.Launcher
                 return;
             }
 
+            /*
             servers = servers.Concat(new[] {
                 new ServerEntity() {
                     Name = "My Among Server",
@@ -203,7 +204,7 @@ namespace AmongServers.Launcher
                         }
                     }
                 }
-            }).ToArray();
+            }).ToArray();*/
 
             // get the favourited servers
             IEnumerable<ServerItem> favouriteItems = _favouriteServers.Select(f => {

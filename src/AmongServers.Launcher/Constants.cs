@@ -12,7 +12,7 @@ namespace AmongServers.Launcher
         /// <summary>
         /// The application version.
         /// </summary>
-        public const string ApplicationVersion = "0.1.0";
+        public const string ApplicationVersion = "0.1.1";
 
         /// <summary>
         /// The API url.
