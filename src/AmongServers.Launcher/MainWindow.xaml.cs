@@ -90,7 +90,8 @@ namespace AmongServers.Launcher
                 new ServerEntity() {
                     Name = "My Among Server",
                     Endpoint = "144.56.23.9:32323",
-                    LastSeenAt = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(5))
+                    LastSeenAt = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(5)),
+                    Games = Array.Empty<GameEntity>()
                 },
                  new ServerEntity() {
                     Name = "Potato lobby, come join!",
@@ -113,10 +114,10 @@ namespace AmongServers.Launcher
 
             listServers.ItemsSource = servers.OrderBy(s=> s.Name).Select(s => new {
                 Name = s.Name,
-                IPAddressPort = $"{s.Endpoint}",
+                IPAddressPort = $"{s.Endpoint ?? "N/A"}",
                 IsSaved = false,
-                CountPlayers = $"{s.Games.Sum(g => g.CountPlayers)}",
-                CountLobbies = $"{s.Games.Length}"
+                CountPlayers = $"{(s.Games == null ? 0 : s.Games.Sum(g => g.CountPlayers))}",
+                CountLobbies = $"{(s.Games == null ? 0 : s.Games.Length)}"
             });
         }
 
