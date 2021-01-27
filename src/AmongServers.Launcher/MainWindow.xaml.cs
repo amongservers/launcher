@@ -206,7 +206,7 @@ namespace AmongServers.Launcher
             }).ToArray();
 
             // get the favourited servers
-            ServerItem[] favouriteItems = _favouriteServers.Select(f => {
+            IEnumerable<ServerItem> favouriteItems = _favouriteServers.Select(f => {
                 ServerEntity s = servers.SingleOrDefault(s => s.Endpoint == f.Endpoint.ToString());
 
                 if (s == null) {
@@ -233,13 +233,13 @@ namespace AmongServers.Launcher
                         IsAvailable = true
                     };
                 }
-            }).OrderBy(s => s.Name).ToArray();
+            });
 
             // save favourites incase we updated any "last-seen" names
             await SaveFavouritesAsync();
 
             // get the regular servers
-            ServerItem[] regularServers = servers.Where(s => IPEndPoint.TryParse(s.Endpoint, out IPEndPoint _))
+            IEnumerable<ServerItem> regularServers = servers.Where(s => IPEndPoint.TryParse(s.Endpoint, out IPEndPoint _))
             .Where(s => !favouriteItems.Any(f => f.Endpoint == s.Endpoint))
             .Select(s => new ServerItem() {
                 Name = s.Name,
@@ -249,7 +249,7 @@ namespace AmongServers.Launcher
                 CountPlayers = s.Games == null ? "!" : s.Games.Sum(g => g.CountPlayers).ToString(),
                 CountPublicLobbies = s.Games == null ? "!" : s.Games.Count(g => g.IsPublic).ToString(),
                 CountPrivateLobbies = s.Games == null ? "!" : s.Games.Count(g => !g.IsPublic).ToString()
-            }).OrderBy(s => s.Name).ToArray();
+            });
 
             // set the item source
             listServers.ItemsSource = new ObservableCollection<ServerItem>(favouriteItems.Concat(regularServers));
@@ -257,6 +257,11 @@ namespace AmongServers.Launcher
             // setup filter
             CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listServers.ItemsSource);
             view.Filter = listServers_Filter;
+
+            if (view.SortDescriptions.Count == 0) {
+                view.SortDescriptions.Add(new SortDescription(nameof(ServerItem.IsSaved), ListSortDirection.Descending));
+                view.SortDescriptions.Add(new SortDescription(nameof(ServerItem.Name), ListSortDirection.Ascending));
+            }
         }
 
         private async void MetroWindow_Loaded(object sender, RoutedEventArgs e)
@@ -307,10 +312,14 @@ namespace AmongServers.Launcher
         private async void btnDirectPlay_Click(object sender, RoutedEventArgs e)
         {
             // validate the server endpoint is correct
-            if (!IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint serverEndpoint) || serverEndpoint.Port == 0) {
+            if (!IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint serverEndpoint)) {
                 MessageBox.Show("The direct play address is invalid", "AmongServers", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
+
+            // add the default port
+            if (serverEndpoint.Port == 0)
+                serverEndpoint = new IPEndPoint(serverEndpoint.Address, 22023);
 
             // change the region file and launch the game
             btnDirectPlay.IsEnabled = false;
@@ -328,7 +337,7 @@ namespace AmongServers.Launcher
         private void txtDirectPlay_TextChanged(object sender, TextChangedEventArgs e)
         {
             // check if the endpoint is valid
-            bool isValidIp = IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint endpoint) && endpoint.Port != 0 && !endpoint.Address.Equals(IPAddress.Any);
+            bool isValidIp = IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint endpoint) && !endpoint.Address.Equals(IPAddress.Any);
 
             // if it's empty or valid we leave the default border brush
             if (string.IsNullOrEmpty(txtDirectPlay.Text) || isValidIp) {
@@ -371,7 +380,7 @@ namespace AmongServers.Launcher
 
         private void txtFilter_TextChanged(object sender, TextChangedEventArgs e)
         {
-            CollectionViewSource.GetDefaultView(listServers.ItemsSource).Refresh();
+            CollectionViewSource.GetDefaultView(listServers.ItemsSource)?.Refresh();
         }
 
         private async void btnFavourite_Click(object sender, RoutedEventArgs e)
@@ -407,6 +416,9 @@ namespace AmongServers.Launcher
                     serverItem.IsSaved = true;
                     await SaveFavouritesAsync();
                 }
+
+                // refresh view for new sorting
+                CollectionViewSource.GetDefaultView(listServers.ItemsSource)?.Refresh();
 
                 button.IsEnabled = true;
             }

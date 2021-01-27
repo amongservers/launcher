@@ -117,7 +117,7 @@
                                     <GridViewColumn Width="32" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Background="{DynamicResource MahApps.Brushes.ThemeBackground}" Name="btnFavourite" ToolTip="Favorite" Click="btnFavourite_Click" HorizontalAlignment="Center"
+                                                <Button IsHitTestVisible="True" Name="btnFavourite" ToolTip="Favorite" Click="btnFavourite_Click" HorizontalAlignment="Center"
                                                    VerticalAlignment="Center">
                                                     <Button.Template>
                                                         <ControlTemplate>
