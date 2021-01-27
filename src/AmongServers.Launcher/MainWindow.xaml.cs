@@ -89,22 +89,34 @@ namespace AmongServers.Launcher
             servers = servers.Concat(new[] {
                 new ServerEntity() {
                     Name = "My Among Server",
-                    IPAddress = "144.56.23.9",
-                    Port = 32323
+                    Endpoint = "144.56.23.9:32323",
+                    LastSeenAt = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(5))
                 },
                  new ServerEntity() {
                     Name = "Potato lobby, come join!",
-                    IPAddress = "2.31.87.122",
-                    Port = 32323
+                    Endpoint = "141.2.134.1:5623",
+                    LastSeenAt = DateTimeOffset.UtcNow - TimeSpan.FromSeconds(RandomNumberGenerator.GetInt32(10)),
+                    Games = new[] {
+                        new GameEntity() {
+                            State = "started",
+                            CountPlayers = 10,
+                            NumImposters = 2,
+                            HostPlayer = null,
+                            IsPublic = false,
+                            Map = "polus",
+                            MaxPlayers = 10,
+                            Players = Array.Empty<PlayerEntity>()
+                        }
+                    }
                 }
             }).ToArray();
 
             listServers.ItemsSource = servers.OrderBy(s=> s.Name).Select(s => new {
                 Name = s.Name,
-                IPAddressPort = $"{s.IPAddress}:{s.Port}",
+                IPAddressPort = $"{s.Endpoint}",
                 IsSaved = false,
-                CountPlayers = 0,
-                CountLobbies = 0
+                CountPlayers = $"{s.Games.Sum(g => g.CountPlayers)}",
+                CountLobbies = $"{s.Games.Length}"
             });
         }
 

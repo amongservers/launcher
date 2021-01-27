@@ -6,14 +6,14 @@ using System.Text;
 namespace AmongServers.Launcher.Coordinator.Entities
 {
     /// <summary>
-    /// Represents the server entity.
+    /// Represents a player.
     /// </summary>
-    public class ServerEntity : HeartbeatEntity
+    public class PlayerEntity
     {
         /// <summary>
-        /// The time the server last send a heartbeat.
+        /// The player name.
         /// </summary>
-        [JsonProperty("lastSeenAt")]
-        public DateTimeOffset LastSeenAt { get; set; }
+        [JsonProperty("name")]
+        public string Name { get; set; }
     }
 }

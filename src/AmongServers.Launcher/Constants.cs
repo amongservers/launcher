@@ -17,7 +17,7 @@ namespace AmongServers.Launcher
         /// <summary>
         /// The API url.
         /// </summary>
-        public const string ApiUrl = "https://localhost:5001";
+        public const string ApiUrl = "https://api.amongservers.com";
 
         /// <summary>
         /// The website url.
