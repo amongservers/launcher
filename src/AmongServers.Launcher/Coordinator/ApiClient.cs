@@ -78,7 +78,7 @@ namespace AmongServers.Launcher
                 if (responseMessage.IsSuccessStatusCode) {
                     string str = await responseMessage.Content.ReadAsStringAsync();
                     return JsonConvert.DeserializeObject<BannerEntity[]>(str);
-                } else if (responseMessage.StatusCode == HttpStatusCode.ServiceUnavailable) {
+                } else if (responseMessage.StatusCode == HttpStatusCode.ServiceUnavailable || responseMessage.StatusCode == HttpStatusCode.BadGateway) {
                     await Task.Delay(TimeSpan.FromSeconds(3));
                     continue;
                 } else {

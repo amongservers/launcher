@@ -29,9 +29,23 @@ namespace AmongServers.Launcher
     {
         private ApiClient _client;
 
+        class ServerItem
+        {
+            public string Name { get; set; }
+            public string IPAddressPort { get; set; }
+            public bool IsSaved { get; set; }
+            public int CountPlayers { get; set; }
+            public int CountLobbies { get; set; }
+
+            public IPEndPoint Endpoint { get; set; }
+        }
+
         public MainWindow()
         {
+            // setup client
             _client = new ApiClient(Constants.ApiUrl);
+
+            // initialise
             InitializeComponent();
         }
 
@@ -112,13 +126,20 @@ namespace AmongServers.Launcher
                 }
             }).ToArray();
 
-            listServers.ItemsSource = servers.OrderBy(s=> s.Name).Select(s => new {
+            // set the item source
+            listServers.ItemsSource = servers.Where(s => IPEndPoint.TryParse(s.Endpoint, out IPEndPoint _))
+            .OrderBy(s=> s.Name).Select(s => new ServerItem() {
                 Name = s.Name,
                 IPAddressPort = $"{s.Endpoint ?? "N/A"}",
                 IsSaved = false,
-                CountPlayers = $"{(s.Games == null ? 0 : s.Games.Sum(g => g.CountPlayers))}",
-                CountLobbies = $"{(s.Games == null ? 0 : s.Games.Length)}"
+                CountPlayers = s.Games == null ? 0 : s.Games.Sum(g => g.CountPlayers),
+                CountLobbies = s.Games == null ? 0 : s.Games.Length,
+                Endpoint = IPEndPoint.Parse(s.Endpoint)
             });
+
+            // setup filter
+            CollectionView view = (CollectionView)CollectionViewSource.GetDefaultView(listServers.ItemsSource);
+            view.Filter = listServers_Filter;
         }
 
         private async void MetroWindow_Loaded(object sender, RoutedEventArgs e)
@@ -160,9 +181,17 @@ namespace AmongServers.Launcher
 
         private async void btnDirectPlay_Click(object sender, RoutedEventArgs e)
         {
+            // validate the server endpoint is correct
+            if (!IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint serverEndpoint) || serverEndpoint.Port == 0) {
+                MessageBox.Show("The direct play address is invalid", "AmongServers", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // change the region file and launch the game
             btnDirectPlay.IsEnabled = false;
 
             try {
+                await Bootstrapper.ReplaceRegionInfoAsync("AmongServers", serverEndpoint);
                 await Bootstrapper.LaunchGameAsync();
             } catch(Exception ex) {
                 MessageBox.Show($"An error occured launching the game{Environment.NewLine}{Environment.NewLine}{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -184,6 +213,40 @@ namespace AmongServers.Launcher
 
             // enable the play button
             btnDirectPlay.IsEnabled = isValidIp;
+        }
+
+        private async void btnPlay_Click(object sender, RoutedEventArgs e)
+        {
+            // get the button instance
+            Button button = (Button)sender;
+
+            // get the data context
+            if (button.DataContext is ServerItem serverItem) {
+                button.IsEnabled = false;
+
+                try {
+                    await Bootstrapper.ReplaceRegionInfoAsync(serverItem.Name, serverItem.Endpoint);
+                    await Bootstrapper.LaunchGameAsync();
+                } catch (Exception ex) {
+                    MessageBox.Show($"An error occured launching the game{Environment.NewLine}{Environment.NewLine}{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+
+                button.IsEnabled = true;
+            }
+        }
+
+        private bool listServers_Filter(object o)
+        {
+            if (!string.IsNullOrWhiteSpace(txtFilter.Text) && o is ServerItem serverItem) {
+                return serverItem.Name.Contains(txtFilter.Text, StringComparison.OrdinalIgnoreCase);
+            } else {
+                return true;
+            }
+        }
+
+        private void txtFilter_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            CollectionViewSource.GetDefaultView(listServers.ItemsSource).Refresh();
         }
     }
 }

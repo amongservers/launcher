@@ -1,6 +1,8 @@
-﻿using System;
+﻿using AmongServers.Launcher.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,11 +17,24 @@ namespace AmongServers.Launcher
         /// <summary>
         /// Replaces the region info file.
         /// </summary>
+        /// <param name="serverName">The server name.</param>
         /// <param name="serverEndpoint">The server endpoint.</param>
         /// <returns></returns>
-        public static async Task ReplaceRegionInfoAsync(IPEndPoint serverEndpoint)
+        public static Task ReplaceRegionInfoAsync(string serverName, IPEndPoint serverEndpoint)
         {
-            //TODO:
+            string fullPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "..", "LocalLow");
+            fullPath = Path.Combine(fullPath, "Innersloth", "Among Us", "regionInfo.dat");
+
+            RegionInfo regionInfo = new RegionInfo();
+            regionInfo.PingEndpoint = serverEndpoint;
+            regionInfo.Name = serverName;
+            regionInfo.Servers.Add(new RegionServer() {
+                Name = serverName,
+                Endpoint = serverEndpoint
+            });
+
+            return regionInfo.SaveAsync(fullPath)
+                .AsTask();
         }
 
         /// <summary>

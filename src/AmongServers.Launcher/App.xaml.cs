@@ -31,7 +31,7 @@ namespace AmongServers.Launcher
                             }
 
                             try {
-                                Bootstrapper.ReplaceRegionInfoAsync(serverEndpoint).Wait();
+                                Bootstrapper.ReplaceRegionInfoAsync("AmongServers", serverEndpoint).Wait();
                                 Bootstrapper.LaunchGameAsync().Wait();
                             } catch(Exception ex) {
                                 MessageBox.Show($"An error occured trying to launch the game{Environment.NewLine}{Environment.NewLine}{ex.ToString()}", "AS Launcher", MessageBoxButton.OK, MessageBoxImage.Error);

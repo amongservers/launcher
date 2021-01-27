@@ -64,7 +64,7 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock VerticalAlignment="Center" Margin="8">Filter:</TextBlock>
-                            <TextBox Grid.Column="1" Margin="8" Grid.ColumnSpan="1"></TextBox>
+                            <TextBox Name="txtFilter" Grid.Column="1" Margin="8" Grid.ColumnSpan="1" TextChanged="txtFilter_TextChanged"></TextBox>
                             <Button Name="btnRefresh" Margin="8" Grid.Column="2" Click="btnRefresh_Click">Refresh</Button>
                         </Grid>
                         
@@ -140,7 +140,7 @@
                                     <GridViewColumn Width="96" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button Content="Play" VerticalAlignment="Center" />
+                                                <Button Name="btnPlay" Click="btnPlay_Click" Content="Play" VerticalAlignment="Center" />
                                             </DataTemplate>
                                         </GridViewColumn.CellTemplate>
                                     </GridViewColumn>
