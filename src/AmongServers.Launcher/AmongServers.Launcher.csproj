@@ -7,17 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="banner_default.png" />
+    <None Remove="Resources\banner_default.png" />
     <None Remove="Resources\icon.png" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MahApps.Metro" Version="2.4.3" />
+    <PackageReference Include="MahApps.Metro.IconPacks.Material" Version="4.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="banner_default.png" />
+    <Resource Include="Resources\banner_default.png" />
     <Resource Include="Resources\icon.png" />
   </ItemGroup>
 

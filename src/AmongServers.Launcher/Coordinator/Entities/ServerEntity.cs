@@ -27,5 +27,29 @@ namespace AmongServers.Launcher.Coordinator.Entities
         /// </summary>
         [JsonProperty("port")]
         public int Port { get; set; }
+
+        /// <summary>
+        /// The number of active players.
+        /// </summary>
+        [JsonProperty("countPlayers")]
+        public int CountPlayers { get; set; }
+
+        /// <summary>
+        /// The number of pending lobbies.
+        /// </summary>
+        [JsonProperty("countPendingLobbies")]
+        public int CountPendingLobbies { get; set; }
+
+        /// <summary>
+        /// The number of active lobbies.
+        /// </summary>
+        [JsonProperty("countActiveLobbies")]
+        public int CountActiveLobbies { get; set; }
+
+        /// <summary>
+        /// The time the server last send a heartbeat.
+        /// </summary>
+        [JsonProperty("lastSeenAt")]
+        public DateTimeOffset LastSeenAt { get; set; }
     }
 }

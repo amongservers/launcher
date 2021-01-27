@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Cache;
 using System.Security.Cryptography;
 using System.Text;
@@ -101,7 +102,7 @@ namespace AmongServers.Launcher
             listServers.ItemsSource = servers.OrderBy(s=> s.Name).Select(s => new {
                 Name = s.Name,
                 IPAddressPort = $"{s.IPAddress}:{s.Port}",
-                IsFavourite = false,
+                IsSaved = false,
                 CountPlayers = 0,
                 CountLobbies = 0
             });
@@ -142,6 +143,35 @@ namespace AmongServers.Launcher
             Process.Start(new ProcessStartInfo(Constants.WebsiteUrl) {
                 UseShellExecute = true
             });
+        }
+
+        private async void btnDirectPlay_Click(object sender, RoutedEventArgs e)
+        {
+            btnDirectPlay.IsEnabled = false;
+
+            try {
+                await Bootstrapper.LaunchGameAsync();
+            } catch(Exception ex) {
+                MessageBox.Show($"An error occured launching the game{Environment.NewLine}{Environment.NewLine}{ex.ToString()}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+
+            btnDirectPlay.IsEnabled = true;
+        }
+
+        private void txtDirectPlay_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // check if the endpoint is valid
+            bool isValidIp = IPEndPoint.TryParse(txtDirectPlay.Text, out IPEndPoint _);
+
+            // if it's empty or valid we leave the default border brush
+            if (string.IsNullOrEmpty(txtDirectPlay.Text) || isValidIp) {
+
+            } else {
+                txtDirectPlay.BorderBrush = Brushes.Red;
+            }
+
+            // enable the play button
+            btnDirectPlay.IsEnabled = isValidIp;
         }
     }
 }

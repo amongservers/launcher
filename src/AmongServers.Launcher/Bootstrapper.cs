@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,9 +26,13 @@ namespace AmongServers.Launcher
         /// Launches the game.
         /// </summary>
         /// <returns></returns>
-        public static async Task LaunchGameAsync()
+        public static Task LaunchGameAsync()
         {
-            //TODO:
+            return Task.Run(() => {
+                Process.Start(new ProcessStartInfo("steam://rungameid/945360") {
+                    UseShellExecute = true
+                });
+            });
         }
     }
 }
