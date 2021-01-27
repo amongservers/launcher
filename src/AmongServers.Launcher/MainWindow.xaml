@@ -117,13 +117,16 @@
                                     <GridViewColumn Width="32" Header="">
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>
-                                                <Button IsHitTestVisible="True" Name="btnFavourite" ToolTip="Favorite" Click="btnFavourite_Click" HorizontalAlignment="Center"
-                                                   VerticalAlignment="Center">
+                                                <Button Name="btnFavourite" ToolTip="Favorite" Click="btnFavourite_Click"  HorizontalAlignment="Center"
+                                                   VerticalAlignment="Center" Width="16" Height="16">
                                                     <Button.Template>
                                                         <ControlTemplate>
-                                                            <iconPacks:PackIconMaterial Width="16"
-                                                               Height="16"
+                                                            <Grid Width="16" Height="16">
+                                                                <iconPacks:PackIconMaterial
                                                                Kind="{Binding FavouriteIcon}" />
+                                                                <Rectangle Fill="Transparent" Width="16"
+                                                               Height="16" IsHitTestVisible="True"></Rectangle>
+                                                            </Grid>
                                                         </ControlTemplate>
                                                     </Button.Template>
                                                 </Button>
