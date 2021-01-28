@@ -11,6 +11,8 @@
 
 An unofficial launcher for Imposter servers, a private server for the game Among Us. This project is part of a wider group of projects, available in the GitHub organisation. The launcher is written in C# using WPF on .NET Core 3.1.
 
+![Launcher](https://amongservers.com/images/launcher.png)
+
 ## Contributing
 
 Any pull requests or bug reports are welcome, please try and keep to the existing style conventions and comment any additions.
